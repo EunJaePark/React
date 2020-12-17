@@ -93,7 +93,26 @@ export  default  App;
 조건이 여러개일 경우에는 JSX 바깥에서 작성하는 것이 일반적이다.
 하지만, 굳이 JSX 내부에서 여러 개의 조건을 사용하고 싶을 경우에는 IIFE를 이용해서 함수를 선언하고 바로 실행하는 방식으로 구현할 수 있다.
 ```javascript
-c
+import React, { Component } from 'react';
+
+class App extends Component {
+  render() {
+    const value = 3;
+    return (
+      <div>
+        {(() => {
+          if (value === 1) return <div>1이다!</div>;
+          if (value === 2) return <div>2이다!</div>;
+          if (value === 3) return <div>3이다!</div>;
+          return <div>없다</div>;
+        })()}
+      </div>
+    );
+  }
+}
+
+export default App;
+
 ```
 
 
