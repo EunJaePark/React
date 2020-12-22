@@ -436,9 +436,81 @@ function Comment(props) {
 UI 일부가 여러 번 사용되거나(`Button`, `Panel`, `Avatar`), UI 일부가 자체적으로 복잡한(`App`, `FeedStory`, `Comment`) 경우에는 별도의 컴포넌트로 만드는 것이 좋다.
 
 ### Props는 읽기 전용이다
+함수 컴포넌트나 클래스 컴포넌트 모두 컴포넌트의 자체 props를 수정해서는 안된다. 다음 `sum` 함수를 살펴보자.
+```javascript
+function sum(a, b) {
+  return a + b;
+}
+```
+이런 함수들을 [순수 함수](https://en.wikipedia.org/wiki/Pure_function)라고 칭한다. 입력값을 바꾸려 하지 않고 항상 동일한 입력 값에 대해 동일한 결과를 반환하기 때문이다.
+
+반면에 다음 함수는 자신의 입력값을 변경하기 때문에 순수 함수가 아니다.
+```javascript
+function withdraw(account, amount) {
+  account.total -= amount;
+}
+```
+React는 매우 유연하지만 한 가지 엄격한 규칙이 있다.
+
+**모든 컴포넌트는 자신의 props를 다룰 때 반드시 순수 함수처럼 동작해야 한다.**
+
+React 컴포넌트는 state를 통해 위 규칙을 위반하지 않고 사용자 액션, 네트워크 응답 및 다른 요소에 대한 응답으로 시간에 따라 자신의 출력값을 변경할 수 있다.
 
 
+<br/>
 
+## 5. State와 생명주기
+이전(3. 엘리먼트 렌더링)에 다뤘던 시계 예시 코드를 다시 살펴보자. 엘리먼트 렌더링에서는 UI를 업데이트하는 한 가지 방법만 다뤘으며, 렌더링 된 출력값을 변경하기 위해 `ReactDOM.render()`를 호출했다. 
+```javascript
+function tick() {
+  const element = (
+    <div>
+      <h1>Hello, world!</h1>
+      <h2>It is {new Date().toLocaleTimeString()}.</h2>
+    </div>
+  );
+  ReactDOM.render(
+    element,
+    document.getElementById('root')
+  );
+}
+
+setInterval(tick, 1000);
+```
+이번에는 `Clock`컴포넌트를 완전히 재사용하고 캡슐화해보자. 이 컴포넌트는 스스로 타이머를 설정하고 매초 스스로 업데이트 할 것이다.
+
+시계가 생긴 것에 따라 캡슐화하는 것으로 시작할 수 있다.
+```javascript
+function Clock(props) {
+  return (
+    <div>
+      <h1>Hello, world!</h1>
+      <h2>It is {props.date.toLocaleTimeString()}.</h2>
+    </div>
+  );
+}
+
+function tick() {
+  ReactDOM.render(
+    <Clock date={new Date()} />,
+    document.getElementById('root')
+  );
+}
+
+setInterval(tick, 1000);
+```
+그러나 위 코드에는 중요한 요건이 누락되어 있다. `Clock`이 타이머를 설정하고 매초 UI를 업데이트하는 것이 `Clock`의 구현 세부사항이 되어야 한다. 
+
+이상적으로 한 번만 코드를 작성하고 `Clock`이 스스로 업데이트하도록 만들어야 한다.
+```javascript
+ReactDOM.render(
+  <Clock />,
+  document.getElementById('root')
+);
+```
+이것을 구현하기 위해서 `Clock` 컴포넌트에 "state"를 추가해야 한다.
+
+State는 props와 유사하지만, 비공개이며 컴포넌트에 의해 완전히 제어된다.
 
 
 
