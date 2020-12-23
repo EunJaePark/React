@@ -1717,7 +1717,127 @@ setTimeout(function() {
 <br/>
 
 ## 10. Sttate 끌어올리기
+동일한 데이터에 대한 변경사항을 여러 컴포넌트에 반영해야 할 필요가 생긴다. 이럴 때 가장 가까운 공통 조상으로 state를 끌어올리는 것이 좋다. 
 
+이번 섹션에서는 주어진 온도에서 물의 끓는 여부를 추정하는 온도 계산기를 만들어보자.
+
+먼저 `BoilingVerdict`라는 이름의 컴포넌트부터 만들어보자. 이 컴포넌트는 섭씨 온도를 의미하는 `celsius` prop를 받아서 이 온도가 물이 끓기에 충분한지 여부를 출력한다.
+```javascript
+function BoilingVerdict(props) {
+  if (props.celsius >= 100) {
+    return <p>The water would boil.</p>;
+  }
+  return <p>The water would not boil.</p>;
+}
+```
+그 다음으로 `Calculator`라는 컴포넌트를 만들자. 이 컴포넌트는 온도를 입력할 수 있는 `<input>`을 렌더링하고 그 값을 `this.state.temperature`에 저장한다.
+
+또한 현재 입력값에 대한 `BoilingVerdict` 컴포넌트를 렌더링한다.
+```javascript
+class Calculator extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+    this.state = {temperature: ''};
+  }
+
+  handleChange(e) {
+    this.setState({temperature: e.target.value});
+  }
+
+  render() {
+    const temperature = this.state.temperature;
+    return (
+      <fieldset>
+        <legend>Enter temperature in Celsius:</legend>
+        <input
+          value={temperature}
+          onChange={this.handleChange} />
+        <BoilingVerdict
+          celsius={parseFloat(temperature)} />
+      </fieldset>
+    );
+  }
+}
+```
+
+### 두 번째 Input 추가하기
+새 요구사항으로써 섭씨 입력 필드뿐만 아니라 화씨 입력 필드를 추가하고 두 필드 간에 동기화 상태를 유지하도록 해보자.
+
+`Calculator`에서 `TemperatureInput` 컴포넌트를 빼내는 작업부터 시작해보자. 또한 `"c"` 또는 `"f"`의 값을 가질 수 있는 `scale` prop을 추가하자.
+```javascript
+const scaleNames = {
+  c: 'Celsius',
+  f: 'Fahrenheit'
+};
+
+class TemperatureInput extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+    this.state = {temperature: ''};
+  }
+
+  handleChange(e) {
+    this.setState({temperature: e.target.value});
+  }
+
+  render() {
+    const temperature = this.state.temperature;
+    const scale = this.props.scale;
+    return (
+      <fieldset>
+        <legend>Enter temperature in {scaleNames[scale]}:</legend>
+        <input value={temperature}
+               onChange={this.handleChange} />
+      </fieldset>
+    );
+  }
+}
+```
+이제 `Calculator`가 분리된 두 개의 온도 입력 필드를 렌더링하도록 변경할 수 있다.
+```javascript
+class Calculator extends React.Component {
+  render() {
+    return (
+      <div>
+        <TemperatureInput scale="c" />
+        <TemperatureInput scale="f" />
+      </div>
+    );
+  }
+}
+```
+이제 두 개의 입력 필드를 갖게 되었다. 그러나 둘 중 하나에 온도를 입력하더라도 다른 하나는 갱신되지 않는 문제가 있다. 이것은 두 입력 필드 간에 동기화 상태를 유지하고자 했던 원래의 요구사항과는 맞지 않다.
+
+또한 `Calculator`에서 `BoilingVerdict`도 역시 보여줄 수 없는 상황이다. 현재 입력된 온도 정보가 `TemperatureInput` 안에 숨겨져 있으므로 `Calculator`는 그 값을 알 수 없기 때문이다.
+
+### 변환 함수 작성하기
+먼저, 섭씨를 화씨로, 또는 그 반대로 변환해주는 함수를 작성해보자.
+```javascript
+function toCelsius(fahrenheit) {
+  return (fahrenheit - 32) * 5 / 9;
+}
+
+function toFahrenheit(celsius) {
+  return (celsius * 9 / 5) + 32;
+}
+```
+이 두 함수는 숫자를 변환한다. 이제 `temperature` 문자열과 변환 함수를 인수로 취해서 문자열을 반환하는 또 다른 함수를 작성해보자. 그리고 그것을 한 입력값에 기반해 나머지 입력값을 계산하는 용도로 사용할 것이다.
+
+아래 함수는 올바르지 않은 `temperature` 값에 대해서는 빈 문자열을 반환하고 값을 소수점 세 번째 자리로 반올림해 출력한다.
+```javascript
+function tryConvert(temperature, convert) {
+  const input = parseFloat(temperature);
+  if (Number.isNaN(input)) {
+    return '';
+  }
+  const output = convert(input);
+  const rounded = Math.round(output * 1000) / 1000;
+  return rounded.toString();
+}
+```
+예를 들어 `tryConvert('abc', toCelsius)`는 빈 문자열을 반환하고 `tryConvert('10.22', toFahrenhit)`는 `'50.396'`을 반환한다.
 
 
 
