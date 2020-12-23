@@ -858,6 +858,724 @@ ReactDOM.render(<App />, document.getElementById('root'));
 
 React 앱에서 컴포넌트가 유상태 또는 무상태에 대한 것은 시간이 지남에 따라 변경될 수 있는 구현 세부 사항으로 간주한다. 유상태 컴포넌트 안에서 무상태 컴포넌트를 사용할 수 있으며, 그 반재 경우도 가능하다.
 
+<br/>
+
+## 6. 이벤트 처리하기
+React 엘리먼트에서 이벤트를 처리하는 방식은 DOM 엘리먼트에서 이벤트를 처리하는 방식과 유사하다. 몇 가지 문법 차이는 다음과 같다.
+- **React의 이벤트는 소문자 대신 캐멀 케이스(camelCase)를 사용**한다.
+- JSX를 사용해 문자열이 아닌 함수로 이벤트 핸들러를 전달한다.
+
+예를 들어, HTML은 다음과 같다.
+```javascript
+<button onclick="activateLasers()">
+  Activate Lasers
+</button>
+```
+React에서는 약간 다르다.
+```javascript
+<button onClick={activateLasers}>
+  Activate Lasers
+</button>
+```
+또다른 차이점으로, **React에서는 `false`를 반환해도 기본 동작을 방지할 수 없다.** 반드시 `preventDefault`를 명시적으로 호출해야 한다. 예를 들어, 일반 HTMl에서는 새 페이지를 여는 링크의 기본 동작을 방지하기 위해 다음과 같은 코드를 작성한다.
+```javascript
+<a href="#" onclick="console.log('The link was clicked.'); return false">
+  Click me
+</a>
+```
+React에서는 다음과 같이 작성할 수 있다.
+```javascript
+function ActionLink() {
+  function handleClick(e) {
+    e.preventDefault();
+    console.log('The link was clicked.');
+  }
+
+  return (
+    <a href="#" onClick={handleClick}>
+      Click me
+    </a>
+  );
+}
+```
+여기서 `e`는 합성 이벤트다. React는 W3C명세에 따라 합성 이벤트를 정의하기 때문에 브라우저 호환성에 대해 걱정할 필요가 없다. React 이벤트는 브라우저 고유 이벤트와 정확히 동일하게 동작하지는 않는다. 자세한 사항은 [합성 이벤트](https://ko.reactjs.org/docs/events.html)를 참고하자.
+
+React를 사용할 때 DOM 엘리먼트가 생성된 후 리스너를 추가하기 위해 `addEventListener`를 호출할 필요가 없다. 대신, 엘리먼트가 처음 렌더링될 때 리스너를 제공하면 된다.
+
+ES6 클래스를 사용해 컴포넌트를 정의할 때, 일반적인 패턴은 이벤트 핸들러 클래스의 메서드로 만드는 것이다. 예를 들어, 다음 `Toggle` 컴포넌트는 사용자가 "ON"과 "OFF" 상태를 토글할 수 있는 버튼을 렌더링한다.
+```javascript
+class Toggle extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {isToggleOn: true};
+
+    // 콜백에서 `this`가 작동하려면 아래와 같이 바인딩 해줘야 한다.
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleClick() {
+    this.setState(state => ({
+      isToggleOn: !state.isToggleOn
+    }));
+  }
+
+  render() {
+    return (
+      <button onClick={this.handleClick}>
+        {this.state.isToggleOn ? 'ON' : 'OFF'}
+      </button>
+    );
+  }
+}
+
+ReactDOM.render(
+  <Toggle />,
+  document.getElementById('root')
+);
+```
+JSX 콜백 안에서 `this`의 의미에 주의해야 한다. JavaScript에서 클래스 메서드는 기본적으로 [바인딩](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)되어 있지 않다. `this.handleClick`을 바인딩하지 않고 `onClick`에 전달했다면, 함수가 실제 호출될 때 `this`는 `undefined`가 된다.
+
+이는 React만의 특수한 동작이 아니며, [JavaScript에서 함수가 작동하는 방식](https://www.smashingmagazine.com/2014/01/understanding-javascript-function-prototype-bind/)의 일부이다. 일반적으로 `onClick={this.handleClick}`과 같이 뒤에 `()`를 사용하지 않고 메서드를 참조할 경우, 해당 메서드를 바인딩 해야 한다.
+
+만약 `bind`를 호출하는 것이 불편하다면, 이를 해결할 수 있는 두 가지 방법이 있다. 실험적인 [퍼블릭 클래스 필드 문법](https://babeljs.io/docs/en/babel-plugin-proposal-class-properties)을 사용하고 있다면, 클래스 필드를 사옹해 콜백을 올바르게 바인딩할 수 있다.
+```javascript
+class LoggingButton extends React.Component {
+  // 이 문법은 `this`가 handleClick 내에서 바인딩되도록 한다.
+  // 주의: 이 문법은 *실험적인* 문법이다.
+  handleClick = () => {
+    console.log('this is:', this);
+  }
+
+  render() {
+    return (
+      <button onClick={this.handleClick}>
+        Click me
+      </button>
+    );
+  }
+}
+```
+[Create React App](https://github.com/facebook/create-react-app)에서는 이 문법이 기본적으로 설정되어 있다.
+
+만약 클래스 필드 문법을 사용하고 있지 않다면, 콜백에 화살표 함수를 사용하는 방법도 있다.~~(이 부분 잘 이해가 안된다. 위와 다른 점이 무엇인가??)~~
+```javascript
+class LoggingButton extends React.Component {
+  handleClick() {
+    console.log('this is:', this);
+  }
+
+  render() {
+    // 이 문법은 `this`가 handleClick 내에서 바인딩되도록 합니다.
+    return (
+      <button onClick={() => this.handleClick()}>
+        Click me
+      </button>
+    );
+  }
+}
+```
+이 문법의 문제점은 `LoggingButton`이 렌더링될 때마다 다른 콜백이 생성된다는 것이다. 대부분의 경우 문제가 되지 않으나, 콜백이 하위 컴포넌트에 props로서 전달된다면 그 컴포넌트들은 추가로 다시 렌더링을 수행할 수도 있다. 이러한 종류의 성능 문제를 피하고자, 생성자 안에서 바인딩하거나 클래스 필드 문법을 사용하는 것을 권장한다.
+
+### 이벤트 핸들러에 인자 전달하기
+루프 내부에서는 이벤트 핸들러에 추가적인 매개변수를 전달하는 것이 일반적이다. 예를 들어 `id`가 행의 ID일 경우 다음 코드가 모두 작동한다.
+```javascript
+<button onClick={(e) => this.deleteRow(id, e)}>Delete Row</button>
+<button onClick={this.deleteRow.bind(this, id)}>Delete Row</button>
+```
+위 두 줄은 동등하며 각각 화살표 함수와 [`Fundtion .prototype.bind`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind)를 사용한다. 
+
+두 경우 모두 React 이벤트를 나타내는 `e` 인자가 ID 뒤에 두 번째 인자로 전달된다. 화살표 함수를 사용하면 명시적으로 인자를 전달해야 하지만 `bind`를 사용할 경우 추가 인자가 자동으로 전달된다.
+
+<br/>
+
+## 7. 조건부 렌더링
+React에서는 원하는 동작을 캡슐화하는 컴포넌트를 만들 수 있다. 이렇게 하면 애플리케이션의 상태에 따라서 컴포넌트 중 몇 개만을 렌더링할 수 있다.
+
+React에서 조건부 렌더링은 JavaScript에서의 조건 처리와 같이 동작한다. `if`나 조건부 연산자와 같은 JavaScript 연산자를 현재 상태를 나타내는 엘리먼트를 만드는 데에 사용하자. 그러면 React는 현재 상태에 맞게 UI를 업데이트할 것이다.
+
+아래 두 컴포넌트가 있다고 가정해보자.
+```javascript
+function UserGreeting(props) {
+  return <h1>Welcome back!</h1>;
+}
+
+function GuestGreeting(props) {
+  return <h1>Please sign up.</h1>;
+}
+```
+이제 사용자의 로그인 상태에 맞게 위 컴포넌트 중 하나를 보여주는 `Greeting` 컴포넌트를 만든다.
+```javascript
+function Greeting(props) {
+  const isLoggedIn = props.isLoggedIn;
+  if (isLoggedIn) {
+    return <UserGreeting />;
+  }
+  return <GuestGreeting />;
+}
+
+ReactDOM.render(
+  // Try changing to isLoggedIn={true}:
+  <Greeting isLoggedIn={false} />,
+  document.getElementById('root')
+);
+```
+위 예시는 `isLoggedIn` prop에 따라서 다른 인사말을 렌더링한다.
+
+### 엘리먼트 변수
+엘리먼트를 저장하기 위해 변수를 사용할 수 있다. 출력의 다른 부분은 변하지 않은 채로 컴포넌트의 일부를 조건부로 렌더링할 수 있다.
+
+로그아웃과 로그인 버튼을 나타내는 두 컴포넌트가 있다고 가정해보자.
+```javascript
+function LoginButton(props) {
+  return (
+    <button onClick={props.onClick}>
+      Login
+    </button>
+  );
+}
+
+function LogoutButton(props) {
+  return (
+    <button onClick={props.onClick}>
+      Logout
+    </button>
+  );
+}
+```
+아래의 예시에서는 `LoginControl`이라는 유상태 컴포넌트를 만들 것이다.
+
+이 컴포넌트는 현재 상태에 맞게 `<LoginButton />`이나 `<LogoutButton />`을 렌더링한다. 또한 이전의 예시에서 `<Greeting />`도 함께 렌더링한다.
+```javascript
+class LoginControl extends React.Component {
+  constructor(props) {
+    super(props);
+    this.handleLoginClick = this.handleLoginClick.bind(this);
+    this.handleLogoutClick = this.handleLogoutClick.bind(this);
+    this.state = {isLoggedIn: false};
+  }
+
+  handleLoginClick() {
+    this.setState({isLoggedIn: true});
+  }
+
+  handleLogoutClick() {
+    this.setState({isLoggedIn: false});
+  }
+
+  render() {
+    const isLoggedIn = this.state.isLoggedIn;
+    let button;
+    if (isLoggedIn) {
+      button = <LogoutButton onClick={this.handleLogoutClick} />;
+    } else {
+      button = <LoginButton onClick={this.handleLoginClick} />;
+    }
+
+    return (
+      <div>
+        <Greeting isLoggedIn={isLoggedIn} />
+        {button}
+      </div>
+    );
+  }
+}
+
+ReactDOM.render(
+  <LoginControl />,
+  document.getElementById('root')
+);
+```
+변수를 선언하고 `if`를 사용해서 조건부로 렌더링하는 것은 좋은 방법이지만 더 짧은 구문을 사용하고 싶을 때가 있을 수 있다. 여러 조건을 JSX 안에서 inline으로 처리할 방법 몇 가지를 알아보자.
+
+### 논리 && 연산자로 if를 인라인으로 표현하기
+JSX 안에는 중괄호를 이용해서 표현식을 포함할 수 있다. 그 안에 JavaScript의 논리 연산자 `&&`를 사용하면 쉽게 엘리먼트를 조건부로 넣을 수 있다.
+```javascript
+function Mailbox(props) {
+  const unreadMessages = props.unreadMessages;
+  return (
+    <div>
+      <h1>Hello!</h1>
+      {unreadMessages.length > 0 &&
+        <h2>
+          You have {unreadMessages.length} unread messages.
+        </h2>
+      }
+    </div>
+  );
+}
+
+const messages = ['React', 'Re: React', 'Re:Re: React'];
+ReactDOM.render(
+  <Mailbox unreadMessages={messages} />,
+  document.getElementById('root')
+);
+```
+JavaScript에서 `true && expression`은 항상 `expression`으로 평가되고 `false && expression`은 항상 `false`로 평가된다.
+
+따라서 `&&` 뒤의 엘리먼트는 조건이 `true`일 때 출력이 된다. 조건이 `false`라면 React는 무시한다.
+
+false로 평가될 수 있는 표현식을 반환하면 `&&` 뒤에 있는 표현식은 건너뛰지만 false로 평가될 수 있는 표현식이 반환된다는 것에 주의하자. 아래 예시에서 `<div>0</div>`이 render 메서드에서 반환된다.
+```javascript
+render() {
+  const count = 0;
+  return (
+    <div>
+      { count && <h1>Messages: {count}</h1>}
+    </div>
+  );
+}
+```
+
+### 조건 연산자로 if-else구문 인라인으로 표현하기
+엘리먼트는 조건부로 렌더링하는 다른 방법은 조건부 연산자인 `condition ? true : false`(삼항 연산자)를 사용하는 것이다.
+
+아래의 예시에서는 짧은 구문을 조건부로 렌더링한다.
+```javascript
+render() {
+  const isLoggedIn = this.state.isLoggedIn;
+  return (
+    <div>
+      The user is <b>{isLoggedIn ? 'currently' : 'not'}</b> logged in.
+    </div>
+  );
+}
+```
+가독성은 좀 떨어지지만, 더 큰 표현식에도 이 구문을 사용할 수 있다.
+```javascript
+render() {
+  const isLoggedIn = this.state.isLoggedIn;
+  return (
+    <div>
+      {isLoggedIn
+        ? <LogoutButton onClick={this.handleLogoutClick} />
+        : <LoginButton onClick={this.handleLoginClick} />
+      }
+    </div>
+  );
+}
+```
+JavaScript와 마찬가지로, 가독서이 좋다고 생각하는 방식을 선택하면 된다. 또한 조건이 너무 복잡하다면 컴포넌트를 분리하는 것도 좋다.
+
+### 컴포넌트가 렌더링하는 것을 막기
+다른 컴포넌트에 의해 렌더링될 때 컴포넌트 자체를 숨기고 싶을 때가 있을 수 있다. 이때는 렌더링 결과를 출력하는 대신 `null`을 반환하면 해결할 수 있다.
+
+아래의 예시에서는 `<WarningBanner />`가 `warn` prop의 값에 의해서 렌더링된다. prop이 `false`라면 컴포넌트는 렌더링하지 않게 된다.
+```javascript
+function WarningBanner(props) {
+  if (!props.warn) {
+    return null;
+  }
+
+  return (
+    <div className="warning">
+      Warning!
+    </div>
+  );
+}
+
+class Page extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {showWarning: true};
+    this.handleToggleClick = this.handleToggleClick.bind(this);
+  }
+
+  handleToggleClick() {
+    this.setState(state => ({
+      showWarning: !state.showWarning
+    }));
+  }
+
+  render() {
+    return (
+      <div>
+        <WarningBanner warn={this.state.showWarning} />
+        <button onClick={this.handleToggleClick}>
+          {this.state.showWarning ? 'Hide' : 'Show'}
+        </button>
+      </div>
+    );
+  }
+}
+
+ReactDOM.render(
+  <Page />,
+  document.getElementById('root')
+);
+```
+컴포넌트의 `render` 메서드로부터 `null`을 반환하는 것은 생명주기 메서드 호출에 영향을 주지 않는다. 그 예로 `componentDidUpdate`는 계속해서 호출되게 된다.
+
+<br/>
+
+## 8. 리스트와 Key
+먼저 JavaScript에서 리스트를 어떻게 변환하는지 살펴보자.
+
+아래는 `map()`함수를 이용해 `numbers` 배열의 값을 두배로 만든 후 `map()`에서 반환하는 새 배열을 `doubled` 변수에 할당하고 로그를 확인하는 코드이다.
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+const doubled = numbers.map((number) => number * 2);
+console.log(doubled);
+```
+위 코드는 콘솔에 `[2, 4, 6, 8, 10]`을 출력한다.
+
+React에서 배열을 엘리먼트 리스트로 만드는 방식은 이와 거의 동일하다.
+
+### 여러개의 컴포넌트 렌러딩 하기
+엘리먼트 모음을 만들고 중괄호 `{}`를 이용해 JSX에 포함시킬 수 있다.
+
+아래의 JavaScript `map()` 함수를 사용해 `numbers` 배열을 반복 실행해보자. 각 항목에 대해 `<li>` 엘리먼트를 반환하고 엘리먼트 배열의 결과를 `listItems`에 저장한다.
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =>
+  <li>{number}</li>
+);
+```
+`listItems` 배열을 `<ul>` 엘리먼트 안에 포함하고 DOM에 렌더링한다.
+```javascript
+ReactDOM.render(
+  <ul>{listItems}</ul>,
+  document.getElementById('root')
+);
+```
+위 코드는 1부터 5까지의 숫자로 이루어진 리스트를 보여준다.
+
+### 기본 리스트 컴포넌트
+일반적으로 컴포넌트 안에서 리스트를 렌더링한다.
+
+이전 예제를 `numbers` 배열을 받아서 순서 없는 엘리먼트 리스트를 출력하는 컴포넌트로 리팩토링할 수 있다.
+```javascript
+function NumberList(props) {
+  const numbers = props.numbers;
+  const listItems = numbers.map((number) =>
+    <li>{number}</li>
+  );
+  return (
+    <ul>{listItems}</ul>
+  );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+  <NumberList numbers={numbers} />,
+  document.getElementById('root')
+);
+```
+위 코드를 실행하면 리스크의 각 항목에 key를 넣어야 한다는 경고가 표시된다. "key"는 엘리먼트 리스트를 만들 때 포함해야 하는 특수한 문자열 어트리뷰트다. 이제 `numbers.map()` 안에서 리스트의 각 항목에 `key`를 할당해 키 누락 문제를 해결해보자.
+
+```javascript
+function NumberList(props) {
+  const numbers = props.numbers;
+  const listItems = numbers.map((number) =>
+    <li key={number.toString()}>
+      {number}
+    </li>
+  );
+  return (
+    <ul>{listItems}</ul>
+  );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+  <NumberList numbers={numbers} />,
+  document.getElementById('root')
+);
+```
+
+### Key
+Key는 React가 어떤 항목을 변경, 추가 또는 삭제할지 식별하는 것을 돕는다. key는 엘리먼트에 안정적인  고유성을 부여하기 위해 배열 내부의 엘리먼트에 지정해야 한다.
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+const listItems = numbers.map((number) =>
+  <li key={number.toString()}>
+    {number}
+  </li>
+);
+```
+Key를 선택하는 가장 좋은 방법은 리스트의 다른 항목들 사이에서 해당 항목을 고유하게 식별할 수 있는 문자열을 사용하는 것이다. 대부분의 경우 데이터의 ID를 key로 사용한다.
+```javascript
+const todoItems = todos.map((todo) =>
+  <li key={todo.id}>
+    {todo.text}
+  </li>
+);
+```
+렌더링 한 항목에 대한 안정적인 ID가 없다면 최후의 수단으로 항목의 인덱스를 key로 사용할 수 있다.
+```javascript
+const todoItems = todos.map((todo, index) =>
+  // Only do this if items have no stable IDs
+  <li key={index}>
+    {todo.text}
+  </li>
+);
+```
+항목의 순서가 바뀔 수 있는 경우 key에 인덱스 사용을 권장하지 않는다. 이로 인해 성능 저하나 컴포넌트의 state와 관련된 문제가 발생할 수 있기 때문이다.
+> [인덱스를 key로 사용할 경우 부정적인 영향에 대한 상세 설명 -Robin Pokorny’s-](https://medium.com/@robinpokorny/index-as-a-key-is-an-anti-pattern-e0349aece318)을 참고하자.
+
+만약 리스트 항목에 명시적으로 key를 지정하지않으면 React는 기본적으로 인덱스를 key로 사용한다.
+
+### Key로 컴포넌트 추출하기
+키는 주변 배열의 context에서만 의미있다.
+
+예를 들어 `ListItem` 컴포넌트를 [추출](https://ko.reactjs.org/docs/components-and-props.html#extracting-components)한 경우 `ListItem`안에 있는 `<li>` 엘리먼트가 아니라 배열의 `<ListItem />` 엘리먼트가 key를 가져야 한다.
+
+**예시: 잘못된 Key 사용법**
+```javascript
+function ListItem(props) {
+  const value = props.value;
+  return (
+    // 틀렸습니다! 여기에는 key를 지정할 필요가 없습니다.
+    <li key={value.toString()}>
+      {value}
+    </li>
+  );
+}
+
+function NumberList(props) {
+  const numbers = props.numbers;
+  const listItems = numbers.map((number) =>
+    // 틀렸습니다! 여기에 key를 지정해야 합니다.
+    <ListItem value={number} />
+  );
+  return (
+    <ul>
+      {listItems}
+    </ul>
+  );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+  <NumberList numbers={numbers} />,
+  document.getElementById('root')
+);
+```
+
+**예시: 올바른 Key 사용법**
+```javascript
+function ListItem(props) {
+  // 맞습니다! 여기에는 key를 지정할 필요가 없습니다.
+  return <li>{props.value}</li>;
+}
+
+function NumberList(props) {
+  const numbers = props.numbers;
+  const listItems = numbers.map((number) =>
+    // 맞습니다! 배열 안에 key를 지정해야 합니다.
+    <ListItem key={number.toString()} value={number} />
+  );
+  return (
+    <ul>
+      {listItems}
+    </ul>
+  );
+}
+
+const numbers = [1, 2, 3, 4, 5];
+ReactDOM.render(
+  <NumberList numbers={numbers} />,
+  document.getElementById('root')
+);
+```
+`map()` 함수 내부에 있는 엘리먼트에 key를 넣어주는 것이 좋다.
+
+### Key는 형제 사이에서만 고유한 값이어야 한다.
+Key는 배열 안 형제 사이에서 고유해야 한다. 하지만 전체 범위에서 고유할 필요는 없다. 두 개의 다른 배열을 만들 때 동일한 key를 사용할 수 있다.
+```javascript
+function Blog(props) {
+  const sidebar = (
+    <ul>
+      {props.posts.map((post) =>
+        <li key={post.id}>
+          {post.title}
+        </li>
+      )}
+    </ul>
+  );
+  const content = props.posts.map((post) =>
+    <div key={post.id}>
+      <h3>{post.title}</h3>
+      <p>{post.content}</p>
+    </div>
+  );
+  return (
+    <div>
+      {sidebar}
+      <hr />
+      {content}
+    </div>
+  );
+}
+
+const posts = [
+  {id: 1, title: 'Hello World', content: 'Welcome to learning React!'},
+  {id: 2, title: 'Installation', content: 'You can install React from npm.'}
+];
+ReactDOM.render(
+  <Blog posts={posts} />,
+  document.getElementById('root')
+);
+```
+React에서 key는 힌트를 제공하지만 컴포넌트로 전달하지는 않는다. 컴포넌트에서 key와 동일한 값이 필요하면 다른 이름의 prop으로 명시적으로 전달한다.
+```javascript
+const content = posts.map((post) =>
+  <Post
+    key={post.id}
+    id={post.id}
+    title={post.title} />
+);
+```
+위 예제에서 `Post` 컴포넌트는 `props.id`를 읽을 수 있지만 `props.key`는 읽을 수 없다.
+
+### JSX에 map() 포함시키기
+위 예제에서 별도의 `listItems` 변수를 선언하고 이를 JSX에 포함해보자.
+```javascript
+function NumberList(props) {
+  const numbers = props.numbers;
+  const listItems = numbers.map((number) =>
+    <ListItem key={number.toString()}
+              value={number} />
+  );
+  return (
+    <ul>
+      {listItems}
+    </ul>
+  );
+}
+```
+JSX를 사용하면 중괄호 안에 모든 표현식을 포함시킬 수 있으므로 `map()` 함수의 결과를 인라인으로 처리할 수 있다.
+```javascript
+function NumberList(props) {
+  const numbers = props.numbers;
+  return (
+    <ul>
+      {numbers.map((number) =>
+        <ListItem key={number.toString()}
+                  value={number} />
+      )}
+    </ul>
+  );
+}
+```
+이 방식을 사용하면 코드가 더 깔끔해지지만, 남발하는 것은 좋지 않다.
+JavaScript와 마찬가지로 가독성을 위해 변수로 추출해야 할지 아니면 인라인으로 넣을지를 판단해야 한다.
+`map()` 함수가 너무 중첩된다면 컴포넌트로 추출하는 것이 좋다.
+
+<br/>
+
+## 9. 폼
+HTML 폼 엘리먼트는 폼 엘리먼트 자체가 내부 상태를 가지기 때문데, React의 다른 DOM 엘리먼트와 조금 다르게 동작한다. 예를 들어, 순수한 HTML에서 아래 폼은 name을 입력받는다.
+```javascript
+<form>
+  <label>
+    Name:
+    <input type="text" name="name" />
+  </label>
+  <input type="submit" value="Submit" />
+</form>
+```
+위 폼은 사용자가 폼을 제출하면 새로운 페이지로 이동하는 기본 HTML 폼 동작을 수행한다. React에서 동일한 동작을 원한다면 그대로 사용하면 된다. 그러나 대부분의 경우, JavaScript 함수로 폼의 제출을 처리하고 사용자가 폼에 입력한 데이터에 접근하도록 하는 것이 편리하다. 
+이를 위한 표준 방식은 "제어 컴포넌트(controlled components)"라고 불리는 기술을 이용하는 것이다.
+
+### 제어 컴포넌트 (Controlled Component)
+HTML에서 `<input>`, `<textarea>`, `<select>`와 같은 폼 엘리먼트는 일반적으로 사용자의 입력을 기반으로 자신의 state를 관리하고 업데이트한다. React에서는 변경할 수 있는 state가 일반적으로 컴포넌트의 state 속성에 유지되며 [`setState()`](https://ko.reactjs.org/docs/react-component.html#setstate)에 의해 업데이트 된다.
+
+React state를 "신뢰 가능한 단일 출처(single source of truth)"로 만들어 두 요소를 결합할 수 있다. 그러면 폼을 렌더링하는 React 컴포넌트는 폼에 발생하는 사용자 입력값을 제어한다. 이런 방식으로 React에 의해 값이 제어되는 입력 폼 엘리먼트를 "제어 컴포넌트(controlled component)"라고 한다. 
+
+예를 들어, 이전 예시가 전송될 때 이름을 기록하길 원한다면 폼을 제어 컴포넌트(controlled component)로 작성할 수 있다.
+```javascript
+class NameForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: ''};
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    alert('A name was submitted: ' + this.state.value);
+    event.preventDefault();
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Name:
+          <input type="text" value={this.state.value} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+
+ReactDOM.render(
+  <NameForm />,
+  document.getElementById('root')
+);
+```
+`value` 어트리뷰트는 폼 엘리먼트에서 설정되므로 표시되는 값은 항상 `this.state.value`가 되고 React state는 신뢰 가능한 단일 출처(single source of truth)가 된다. React state를 업데이트하기 위해 모든 키 입력에서 `handleChange`가 동작하기 때문에 사용자가 입력할 때 보여지는 값이 업데이트된다.
+
+제어 컴포넌트로 사용하면, input 값은 항상 React state에 의해 결정된다. 코드를 조금 더 작성해야 한다는 의미이지만, 다른 UI 엘리먼트에 input의 값을 전달하거나 다른 이벤트 핸들러에서 값을 재설정할 수 있다.
+
+### textarea 태그
+HTML에서 `<textarea>` 엘리먼트는 텍스트를 자식으로 정의한다.
+```javascript
+<textarea>
+  Hello there, this is some text in a text area
+</textarea>
+```
+React에서 `<textarea>`는 `value` 어트리뷰트를 대신 사용한다. 이렇게 하면 `<textarea>`를 사용하는 폼은 한 줄 입력을 사용하는 폼과 비슷하게 작성할 수 있다.
+```javascript
+class EssayForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      value: 'Please write an essay about your favorite DOM element.'
+    };
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    alert('An essay was submitted: ' + this.state.value);
+    event.preventDefault();
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Essay:
+          <textarea value={this.state.value} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+```
+`this.state.value`를 생성자에서 초기화하므로 textarea는 일부 텍스트를 가진채 시작되는 점을 주의하자.
+
+### select 태그
+
+
+
+
+
+
+
 
 
 
