@@ -1569,9 +1569,154 @@ class EssayForm extends React.Component {
 `this.state.value`를 생성자에서 초기화하므로 textarea는 일부 텍스트를 가진채 시작되는 점을 주의하자.
 
 ### select 태그
+HTML에서 `<select>`는 드롭다운 목록을 만든다. 예를 들어, 이 HTML은 과일 드롭다운 목록을 만든다.
+```javascript
+<select>
+  <option value="grapefruit">Grapefruit</option>
+  <option value="lime">Lime</option>
+  <option selected value="coconut">Coconut</option>
+  <option value="mango">Mango</option>
+</select>
+```
+`selected` 옵션이 있으므로 Coconut 옵션이 초기값이 되는 점을 주의하자.
+React에서는 `selected` 어트리뷰트를 사용하는 대신 최상단 `select` 태그에 `value` 어트리뷰트를 사용한다. 한 곳에서 업데이트만 하면되기 때문에 제어 컴포넌트에서 사용하기 더 편하다. 아래 예시를 보자.
+```javascript
+class FlavorForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {value: 'coconut'};
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    alert('Your favorite flavor is: ' + this.state.value);
+    event.preventDefault();
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Pick your favorite flavor:
+          <select value={this.state.value} onChange={this.handleChange}>
+            <option value="grapefruit">Grapefruit</option>
+            <option value="lime">Lime</option>
+            <option value="coconut">Coconut</option>
+            <option value="mango">Mango</option>
+          </select>
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
+```
+전반적으로 `<input type="text">`, `<textarea>` 및 `<select>` 모두 매우 비슷하게 동작한다. 모두 제어 컴포넌트를 구현하는데 `value` 어트리뷰트를 허용한다.
+> 주의: `select` 태그에 multiple 옵션을 허용한다면 `value` 어트리뷰트에 배열을 전달 할 수 있다.
+> ```javascript
+> <select multiple={true} value={['B', 'C']}>
+> ```
 
 
+### file input 태그
+HTML에서 `<input type="file">`는 사용자가 하나 이상의 파일을 자신의 장치 저장소에서 서버로 업로드하거나 [File API](https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications)를 통해 JavaScript로 조작할 수 있다.
+```javascript
+<input type="file" />
+```
+같이 읽기 전용이기 때문에 React에서는 [비제어 컴포넌트](https://ko.reactjs.org/docs/uncontrolled-components.html#the-file-input-tag)이다. 
 
+### 다중 입력 제어하기
+여러 `input` 엘리먼트를 제어해야할 때, 각 엘리먼트에 `name` 어트리뷰트를 추가하고 `event.target.name` 값을 통해 핸들러가 어떤 작업을 할지 선택할 수 있게 해준다.
+
+아래 예시를 살펴보자.
+```javascript
+class Reservation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isGoing: true,
+      numberOfGuests: 2
+    };
+
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  render() {
+    return (
+      <form>
+        <label>
+          Is going:
+          <input
+            name="isGoing"
+            type="checkbox"
+            checked={this.state.isGoing}
+            onChange={this.handleInputChange} />
+        </label>
+        <br />
+        <label>
+          Number of guests:
+          <input
+            name="numberOfGuests"
+            type="number"
+            value={this.state.numberOfGuests}
+            onChange={this.handleInputChange} />
+        </label>
+      </form>
+    );
+  }
+}
+```
+주어진 input 태그의 name에 일치하는 state를 업데이트하기 위해 ES6의 [comcomputed property name](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/Object_initializer#%EC%86%8D%EC%84%B1_%EA%B3%84%EC%82%B0%EB%AA%85) 구문을 사용하고 있다.
+```javascript
+this.setState({
+  [name]: value
+});
+```
+ES6 코드 아래와 같다.
+```javascript
+var partialState = {};
+partialState[name] = value;
+this.setState(partialState);
+```
+또한, `setState()`는 자동적으로 [현재 state에 일부 state를 병합](https://ko.reactjs.org/docs/state-and-lifecycle.html#state-updates-are-merged)하기 때문에 바뀐 부분에 대해서만 호출하면 된다.
+
+### 제어되는 Input Null 값
+제어 컴포넌트에 value prop을 지정하면 의도하지 않는 한 사용자가 변경할 수 없다. `value`를 설정했는데 여전히 수정할 수 있다면 실수로 `value`를 `undefined`나 `null`로 설정했을 수 있다.
+
+아래 코드가 그 예시다.(첫 번째 입력은 잠겨있지만 잠시 후 입력이 가능해진다.)
+```javascript
+ReactDOM.render(<input value="hi" />, mountNode);
+
+setTimeout(function() {
+  ReactDOM.render(<input value={null} />, mountNode);
+}, 1000);
+```
+
+### 제어 컴포넌트의 대안
+데이터를 변경할 수 있는 모든 방법에 대해 이벤트 핸들러를 작성하고 React 컴포넌트를 통해 모든 입력 상태를 연결해야 하기 때문에 때로는 제어 컴포넌트를 사용하는게 지루할 수 있다. 특히 기존의 코드베이스를 React로 변경하고자 할 때나 React가 아닌 라이브러리와 React 애플리케이션을 통합하고자 할 때 짜증날 수 있다. 이러한 경우에 입력 폼을 구현하기 위한 대체 기술인 [비제어 컴포넌트](https://ko.reactjs.org/docs/uncontrolled-components.html)를 확인할 수 있다.
+
+### 완전한 해결책
+유효성 검사, 방문한 필드 추적 및 폼 제출 처리와 같은 완벽한 해결을 원한다면 [Formik](https://formik.org/)이 대중적인 선택 중 하나이다. 그러나 Formik은 제어 컴포넌트 및 state 관리에 기초하기 때문에 배우기 쉽지 않다.
+
+<br/>
+
+## 10. Sttate 끌어올리기
 
 
 
