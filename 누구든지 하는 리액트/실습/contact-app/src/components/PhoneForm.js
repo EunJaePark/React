@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 
 class PhoneForm extends Component {
+    input = null;  // Ref 작업을 위한 것.
+    input = React.createRef();
+
    // <input />의 상태를 어떻게 관리하는지 알아보자.
    // 1. 우선 state를 만들어서 name이라는 값을 넣어서 상태를 정의해준다.
     state = {
@@ -30,6 +33,9 @@ class PhoneForm extends Component {
             name: '',
             phone: '',
         })
+
+        // this.input.focus();  // handleSubmit이 발생했을 때, <input/>의 DOM에 직접적으로 접근해서 focus를 해준다.
+        this.input.current.focus();
     }
     render() {
         return (
@@ -41,6 +47,8 @@ class PhoneForm extends Component {
                     placeholder="이름" 
                     onChange={this.handleChange} 
                     value={this.state.name} 
+                    // ref={ref => this.input = ref}
+                    ref={this.input}
                 /> 
                 <input 
                     name="phone"
