@@ -50,6 +50,8 @@ redux를 사용함으로써 디커플링시킬 수 있다. 즉, 컴포넌트 간
 
 복잡한 애플리케이션일 경우 문제가 발생했을 때, 어떠한 맥락 속에서 문제가 발생했는가를 파악하는 것이 어려워진다. 이럴 경우에 redux dev tools를 사용하면 보다 편하게 문제를 파악할 수 있다.
 
+<img src="./imgs/redux-dev-tools.gif" width="700px" />
+
 ### 불변 (immutable)
 state 원본에 대해서 변경하면 안된다.
 action에 의해서 state가 변경될 때마다, 이 바뀌는 각각의 데이터들은 서로 완전히 독립된 데이터이어야 한다는 것이다.
@@ -72,88 +74,5 @@ function reducer(state, action) {
 <br/>
 
 ## [Redux 없이 짠 코드](https://github.com/EunJaePark/React/blob/master/Redux/%EA%B0%95%EC%9D%98%EC%A0%95%EB%A6%AC/1_%EB%A6%AC%EB%8D%95%EC%8A%A4%20%EC%97%AC%ED%96%89%EC%9D%98%20%EC%A7%80%EB%8F%84.md#redux%EA%B0%80-%EC%97%86%EB%8B%A4%EB%A9%B4)를 Redux를 이용해서 다시 짜보자.
-```javascript
-<!DOCTYPE html>
-<html>
-    <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.js"></script>
-    </head>
-    <body>
-        <style>
-            .container {
-                border: 5px solid black;
-                padding: 10px;
-            }
-        </style>
-        <div id="red"></div>
-        <div id="blue"></div>
-        <div id="green"></div>
 
-    <script>
-        function reducer(state, action) {
-            console.log(state, action); // action은 store.dispatch({type:'CHANGE_COLOR', color:'red'});의 값이다. ({type:'CHANGE_COLOR', color:'red'})
-            // reducer의 역할 : dispatch에 의해 action이 들어오게 되면 action값과 기존의 state값을 참조해서 새로운 state값을 만들어준다.
-            if(state === undefined) {  // 처음 state를 만들때는 아직 state값이 정해지지 않은 상태이기 때문에 state의 초기값 설정.
-                // reducer를 통해서 state의 값을 만들어줘야 하는데, reducer의 기존 state값이 undefined일 경우 초기값을 위해서 최초로 실행되는 reducer에 대한 호출이기 때문에 원하는 초기값을 return해주면 redux의 store에 초기값이 지정이 되는 것이다.
-                return {color: 'yellow'}
-            }
-            var newState;
-            if(action.type === "CHANGE_COLOR") {
-                // state를 복제한 값을 변경하자!!! (원본은 변경하지 말 것!!!)
-                newState = Object.assign({}, state, {color: action.color});
-            }
-            console.log(action.type, action, state, newState);
-            return newState;
-        }
-        // var store = Redux.createStore(reducer);  // store라는 전역변수로 생성해줌.
-        var store = Redux.createStore(
-            reducer,
-            window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()  // redux dev tools
-        ); 
-        console.log(store.getState()); // {color: 'yellow'}가 콘솔에 찍힘.
-
-        function red() {
-            var state = store.getState();
-            document.querySelector('#red').innerHTML = `
-                <div class="container" id="component_red" style="background-color:${state.color}">
-                    <h1>red</h1>
-                    <input type="button" value="fire" onclick="
-                        store.dispatch({type:'CHANGE_COLOR', color:'red'});
-                    " />
-                </div>
-            `;
-        }
-        store.subscribe(red);  // store값이 바뀔 때마다 red()함수를 호출.
-        red();
-
-        function blue() {
-            var state = store.getState();
-            document.querySelector('#blue').innerHTML = `
-                <div class="container" id="component_blue" style="background-color:${state.color}">
-                    <h1>blue</h1>
-                    <input type="button" value="fire" onclick="
-                        store.dispatch({type:'CHANGE_COLOR', color:'blue'});
-                    " />
-                </div>
-            `;
-        }
-        store.subscribe(blue);  // store값이 바뀔 때마다 blue()함수를 호출.
-        blue();
-
-        function green() {
-            var state = store.getState();
-            document.querySelector('#green').innerHTML = `
-                <div class="container" id="component_green" style="background-color:${state.color}">
-                    <h1>green</h1>
-                    <input type="button" value="fire" onclick="
-                        store.dispatch({type:'CHANGE_COLOR', color:'green'});
-                    " />
-                </div>
-            `;
-        }
-        store.subscribe(green);  // store값이 바뀔 때마다 green()함수를 호출.
-        green();
-    </script>
-    </body>
-</html>
-```
+<img src="./imgs/with-redux.png" />
