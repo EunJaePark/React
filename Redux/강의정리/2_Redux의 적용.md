@@ -50,7 +50,7 @@ redux를 사용함으로써 디커플링시킬 수 있다. 즉, 컴포넌트 간
 
 복잡한 애플리케이션일 경우 문제가 발생했을 때, 어떠한 맥락 속에서 문제가 발생했는가를 파악하는 것이 어려워진다. 이럴 경우에 redux dev tools를 사용하면 보다 편하게 문제를 파악할 수 있다.
 
-<img src="./imgs/redux-dev-tools.gif" width="700px" />
+<img src="./imgs/redux-dev-tools.gif" />
 
 ### 불변 (immutable)
 state 원본에 대해서 변경하면 안된다.
