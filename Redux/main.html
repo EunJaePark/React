@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.js"></script>
+    </head>
+
+    <body>
+        <!-- <header>
+            <h1>WEB</h1>
+            Hello, WEB!
+        </header> -->
+        <!-- <nav>
+            <ol>
+                <li><a href="1.html">HTML</a></li>
+                <li><a href="2.html">CSS</a></li>
+            </ol>
+        </nav> -->        
+        <!-- <ul>
+            <li><a href="/create">create</a></li>
+            <li><input type="button" value="delete" /></li> 
+            delete는 페이지가 아닌 작업의 개념이기 때문에 자동화된 프로그램이 a태그를 누를수도 있다. 이렇게 되면 의도치 않게 삭제가 될 수 있기 때문에 delete와 같은 기능은 button을 사용하는 것이 적절하다. 
+        </ul> -->
+        <!-- <article>  
+            <h2>HTML</h2>
+            HTML is...
+        </article> -->
+
+        <div id="subject"></div>
+        <div id="TOC"></div>
+        <div id="control"></div>
+        <div id="content"></div>
+        
+        <script>
+            function subject() {
+                document.querySelector('#subject').innerHTML = `
+                <header>
+                    <h1>WEB</h1>
+                    Hello, WEB!
+                </header>
+                `;
+            }
+            function TOC() {  // TOC = Topic table Of Contents: 글 목록을 나타낼 때 보통 사용하는 이름.
+                var state = store.getState();
+                var i = 0;
+                var liTags = '';
+                while(i < state.contents.length) {
+                    liTags = liTags + `
+                    <li>
+                        <a href="${state.contents[i].id}">${state.contents[i].title}</a>
+                    </li>`;
+                    i = i + 1;
+                }
+                document.querySelector('#TOC').innerHTML = `
+                <nav>
+                    <ol>
+                        <!-- <li><a href="1.html">HTML</a></li>
+                        <li><a href="2.html">CSS</a></li> -->
+                        ${liTags}
+                    </ol>
+                </nav>
+                `;
+            }
+            function control() {
+                document.querySelector('#control').innerHTML = `
+                <ul>
+                    <li><a href="/create">create</a></li>
+                    <li><input type="button" value="delete" /></li> 
+                </ul>
+                `;
+            }
+            function article() {
+                document.querySelector('#content').innerHTML = `
+                <article>  
+                    <h2>HTML</h2>
+                    HTML is...
+                </article>
+                `;
+            }
+
+            function reducer(state, action) {
+                if(state === undefined) {
+                    return {
+                        contents: [
+                            {id: 1, title: 'HTML', desc: 'HTML is ...'},
+                            {id: 2, title: 'CSS', desc: 'CSS is ...'}
+                        ]
+                    }
+                }
+            }
+            var store = Redux.createStore(reducer);
+
+            subject();
+            TOC();
+            control();
+            article();
+        </script>
+    </body>
+</html>
