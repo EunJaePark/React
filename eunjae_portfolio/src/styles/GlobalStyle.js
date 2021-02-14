@@ -2,14 +2,19 @@ import { createGlobalStyle } from 'styled-components';
 import reset from 'styled-reset';
 
 const GlobalStyle = createGlobalStyle`
-    ${reset};
-    html {
+      ${reset};
+      // @import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;900&display=swap");
+      @import url('https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@700&display=swap');
+      * {
+        font-family: "Overpass", sans-serif !important;
+      }
+      html {
         font-size: 100%;
       }
       body {
-        @import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;900&display=swap");
         font-size: 12px;
-        font-family: "Overpass", sans-serif !important;
+        // font-family: "Overpass", sans-serif !important;
+        font-family: 'Overpass Mono', monospace;
         line-height: 1.6;
         margin: 0;
         padding: 0;
@@ -93,6 +98,8 @@ const GlobalStyle = createGlobalStyle`
         -webkit-text-fill-color: #585858 !important;
       }
       button {
+        border: none;
+        background-color: transparent;
         cursor: pointer;
       }
       

@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from 'styled-components'
+import imoge from '../imgs/imoge_ponytail.png'
 
 const Intro = () => {
     return (
         <div>
             <IntroText>
                 <span>HELL</span>
-                <img src="../imgs/imoge_ponytail.png" alt="imoge" />
+                <img src={imoge} alt="imoge" />
                 <span>, I'M</span>
                 <p>FRONT-END</p>
                 <p>DEVELOPER</p>
@@ -29,10 +30,15 @@ const IntroText = styled.div`
     span,
     p {
         font-size: 88px;
-        font-weight: bold;
+        font-weight: 900;
         line-height: 130%;
         font-family: "Overpass", sans-serif;
         color: #fff;
+    }
+
+    img {
+        width: 118px;
+        transform: translate(-5px, 30px);
     }
 
     @media (max-height: 720px) {

@@ -1,31 +1,25 @@
 import React from 'react';
+import './App.css'
 import styled from 'styled-components';
 import GlobalStyle from './styles/GlobalStyle';
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import Header from './components/Header';
-import Intro from './components/Intro';
-import Skills from './components/Skills';
-import Portfolio from './components/Portfolio';
-import Contact from './components/Contact';
+import NavRoute from './components/NavRoute'
 
 function App() {
+
   return (
-    <AppCont>
-      <GlobalStyle />
-      <BrowserRouter>
-        <Header /> 
-        {/* header.js의 <Link>태그도 Router안에 위치해야 하기 때문에 App.js의 <BrowserRouter> 안에 위치시켜 준 것임. */}
-        {/* https://ssungkang.tistory.com/entry/React-react%EC%9D%98-%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-react-router-dom */}
-        <Switch>
-          <Route exact path="/" component={Intro} />
-          <Route path="/skills" component={Skills} />
-          <Route path="/portfolio" component={Portfolio} />
-          <Route path="/contact" component={Contact} />
-        </Switch>
-      </BrowserRouter>
-    </AppCont>
-  );
-}
+      <AppCont>
+        <GlobalStyle />
+        <BrowserRouter>
+          <Header /> 
+          <NavRoute />
+        </BrowserRouter>
+      </AppCont>
+    );
+  }
+// header.js의 <Link>태그도 Router안에 위치해야 하기 때문에 App.js의 <BrowserRouter> 안에 위치시켜 준 것임. 
+// https://ssungkang.tistory.com/entry/React-react%EC%9D%98-%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-react-router-dom
 
 export default App;
 
@@ -36,5 +30,6 @@ const AppCont = styled.div`
   height: calc(100vh - 34px);
   min-height: 720px;
   margin: 0 auto;
+  padding: 0 40px;
   font-family: "Overpass", sans-serif !important;
 `;

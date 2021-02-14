@@ -1,5 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;900&display=swap");
+
 .App {
   text-align: center;
+  font-family: "Overpass", sans-serif;
 }
 
 .App-logo {
