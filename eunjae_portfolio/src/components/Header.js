@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { css, keyframes } from 'styled-components';
 import hamburger_24px from '../imgs/icon-hamburger-24-px-white.png';
-import icon_closeBtn from '../imgs/icon_clostBtn_28px_white.png'
-import icon_closeBtn_black from '../imgs/icon_clostBtn_28px_black.png'
+// import icon_closeBtn from '../imgs/icon_clostBtn_28px_black.png'
+// import icon_closeBtn_black from '../imgs/icon_clostBtn_28px_black.png'
+import icon_line_black from '../imgs/icon_line(hamburger)_20px_black.png'
 import Nav from './Nav';
 
 const Header = () => {
@@ -13,6 +14,11 @@ const Header = () => {
     useEffect(() => {
         console.log(NavStatus);
     });
+
+    const clickLogo = () => {
+        setNavStatus('closeNav');
+        getFullNavStatus(NavStatus);
+    }
 
     const getFullNavStatus = (data) => {
         if(data === 'closeNav') {
@@ -25,15 +31,16 @@ const Header = () => {
     }
 
     return (
-        <HeaderCont openStatus={NavStatus}>
-            <HeaderBox openStatus={NavStatus}>
+        <HeaderCont openstatus={NavStatus}>
+            <HeaderBox openstatus={NavStatus}>
                         {/* {NavStatus} */}
                 <Logo>
-                    <LogoLink to="/" openStatus={NavStatus}>logo</LogoLink>
+                    <LogoLink to="/" onClick={clickLogo} openstatus={NavStatus}>logo</LogoLink>
                 </Logo>
                 <Nav openStatus={NavStatus} getFullNavStatus={getFullNavStatus} />
-                <HamburderBtn onClick={navigationData} openStatus={NavStatus}>
-                    {NavStatus === 'closeNav' ? <img src={hamburger_24px} alt="icon-hambuger-24-px-white" /> : <img src={icon_closeBtn} alt="icon_clostBtn_28px_white.png" />}
+                <HamburderBtn onClick={navigationData} openstatus={NavStatus}>
+                    {NavStatus === 'closeNav' ? <img src={hamburger_24px} alt="icon-hambuger-24-px-white" /> : <img src={icon_line_black} alt="icon_clostBtn_28px_white.png" />}
+                    {NavStatus === 'closeNav' ? null : <img src={icon_line_black} alt="icon_clostBtn_28px_white.png" />}
                 </HamburderBtn>
                 {NavStatus === 'openNav' ? <BgBtn>dsf</BgBtn> : null}
             </HeaderBox>
@@ -46,7 +53,7 @@ export default Header;
 const HeaderCont = styled.div`
     z-index: 1000;
 
-    ${props => props.openStatus === 'openNav' ? `
+    ${props => props.openstatus === 'openNav' ? `
         width: 100vw;
         background-color: #fff;
         position: absolute; 
@@ -64,7 +71,7 @@ const HeaderBox = styled.div`
         display: inline-block;
     }
 
-    ${props => props.openStatus === 'openNav' ? `
+    ${props => props.openstatus === 'openNav' ? `
         width: 100%;
         max-width: 1280px;
         height: 100vh;
@@ -86,38 +93,72 @@ const LogoLink = styled(Link)`
     font-size: 18px;
     font-weight: 600;
 
-    ${props => props.openStatus === 'openNav' ? `
+    ${props => props.openstatus === 'openNav' ? `
         color: #000 !important;
     ` : null}
 `;
 
 const HamburderBtn = styled.button`
+    // outline: 1px solid red !important;
     margin-left: 20px;
     position: absolute;
     right: 0;
-    top: -4px;
+    top: -4px;    
+
+    ${props => props.openstatus === 'openNav' ? `
+        // outline: 1px solid red !important;
+        width: 36px;
+        height: 32px;
+        padding: 1px 6px;
+        top: 30px;
+        right: 40px;
+    ` : null} 
+
 
     img {
         width: 24px;
         transform: translateY(6px);
-    }
 
-    ${props => props.openStatus === 'openNav' ? `
-        top: 30px;
-        right: 40px;
-
-        &:after{
-            content: '';
-            display: block;
-            width: 24px;
-            height: 24px;
-            background: url(${icon_closeBtn_black});
-            background-size: cover;
-            position: absolute;
-            top: 7px;
-            left: 6px;
+        &:first-child {
+            ${props => props.openstatus === 'openNav' ? css`
+                animation: ${closeBtnAnimation1};
+            ` : null}
         }
-    ` : null}
+        &:last-child {
+            ${props => props.openstatus === 'openNav' ? css`
+                animation: ${closeBtnAnimation2};
+            ` : null}
+        }
+    }
+    
+
+`;
+
+
+const moveLine1 = keyframes`
+    from {
+        transform: rotate(0deg) translateY(0);
+    }
+    to {
+        height: 2px;
+        transform: rotate(45deg) translateY(2px);
+    }
+`;
+const moveLine2 = keyframes`
+    from {
+        transform: rotate(0deg) translate(13px, -10px);
+    }
+    to {
+        height: 2px;
+        transform: rotate(-45deg) translate(13px, -15px);
+    }
+`;
+
+const closeBtnAnimation1 = props => css`
+    ${moveLine1} .7s ease forwards;
+`;
+const closeBtnAnimation2 = props => css`
+    ${moveLine2} .7s ease forwards;
 `;
 
 const BgBtn = styled.button`

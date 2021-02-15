@@ -24,7 +24,6 @@ const Nav = styled.div`
     // outline: 1px solid red;
     margin-right: 40px;
     float: right;
-
     ${props => props.openstatus === 'openNav' ? `
         position: absolute;
         top: 50%;
@@ -40,19 +39,16 @@ const NavLink = styled(Link)`
     font-size: 18px;
     font-weight: 600;
     font-family: "Overpass", sans-serif;
-
     &:hover {
         color: #000 !important;
         background-color: #fff;
     }
-
     ${props => props.openstatus === 'openNav' ? `
         padding: 0 34px 0 30px;
         font-size: 80px;
         font-weight: 900;
         color: #000 !important;
         display: block !important;
-
         &:hover {
             color: #fff !important;
             background-color: #000;

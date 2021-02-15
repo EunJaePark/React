@@ -24,12 +24,10 @@ function App() {
 export default App;
 
 const AppCont = styled.div`
-  @import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;900&display=swap");
   width: 100%;
   max-width: 1280px;
   height: calc(100vh - 34px);
   min-height: 720px;
   margin: 0 auto;
   padding: 0 40px;
-  font-family: "Overpass", sans-serif !important;
 `;

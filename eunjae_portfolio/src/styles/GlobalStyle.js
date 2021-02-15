@@ -3,8 +3,6 @@ import reset from 'styled-reset';
 
 const GlobalStyle = createGlobalStyle`
       ${reset};
-      // @import url("https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;900&display=swap");
-      @import url('https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@700&display=swap');
       * {
         font-family: "Overpass", sans-serif !important;
       }
