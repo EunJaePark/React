@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import imoge from '../imgs/imoge_shadow.png'
-import icon_github_white from '../imgs/icon_white_github.png'
+import icon_github_white from '../imgs/icon_github_121px_white.png'
 import icon_mail_white from '../imgs/icon_white_mail.svg'
 import icon_phone_white from '../imgs/icon_white_phone.svg'
 
@@ -82,20 +82,8 @@ const ContText = styled.ul`
     li{
         height: 28px;
 
-        &:first-child{
-            img{
-                width: 34px;
-                height: 34px;
-                margin-right: 3px;
-                transform: translate(-3px, -3px);
-            }
-        }
-
-        &:nth-child(2),
-        &:nth-child(3) {
-            img {
-                margin-right: 10px;
-            }
+        img {
+            margin-right: 10px;
         }
     }
 

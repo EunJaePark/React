@@ -6,6 +6,7 @@ const Portfolio = () => {
         <div>
             <PortfolioCont>
                 <h2>Portfolio</h2>
+                <section>dsfdfsdf</section>
             </PortfolioCont>
         </div>
     );
@@ -13,4 +14,10 @@ const Portfolio = () => {
 
 export default Portfolio;
 
-const PortfolioCont = styled.div``;
+const PortfolioCont = styled.div`
+    section {
+        outline: 1px solid lime;
+        width: 500px;
+        margin: 0 auto;
+    }
+`;

@@ -5,6 +5,7 @@ import imoge from '../imgs/imoge_ponytail.png'
 const Intro = () => {
     return (
         <div>
+            <BgBox></BgBox>
             <IntroText>
                 <span>HELL</span>
                 <img src={imoge} alt="imoge" />
@@ -12,11 +13,20 @@ const Intro = () => {
                 <p>FRONT-END</p>
                 <p>DEVELOPER</p>
             </IntroText>
+            <Copyright>
+                <span>Copyright ⓒ 2021</span>
+                <span>ParkEunJae all rights reserved.</span>
+            </Copyright>
         </div>
     );
 };
 
 export default Intro;
+
+const BgBox = styled.div`
+    border: 2px solid orange;
+    position: absolute;
+`;
 
 const IntroText = styled.div`
     outline: 1px solid pink;
@@ -44,5 +54,23 @@ const IntroText = styled.div`
     @media (max-height: 720px) {
         top: 230px;
         transform: translate(-50%, 0);
+    }
+`;
+
+const Copyright = styled.div`
+    // outline: 1px solid red;
+    width: calc(100vw - 80px);
+    max-width: 1200px;
+    position: absolute;
+    bottom: 50px;
+
+    span {
+        color: #fff;
+        &:first-child {
+            float: left;
+        }
+        &:last-child {
+            float: right;
+        }
     }
 `;
